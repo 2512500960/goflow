@@ -27,7 +27,7 @@ all: test-race vet test
 .PHONY: proto
 proto:
 	@echo generating protobuf
-	protoc --go_out=. --plugin=$(PROTOCPATH)protoc-gen-go pb/*.proto
+	protoc --go_opt=paths=source_relative --go_out=. pb/*.proto
 
 .PHONY: test
 test:

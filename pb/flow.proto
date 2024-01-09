@@ -1,6 +1,6 @@
 syntax = "proto3";
 package flowprotob;
-
+option go_package = "github.com/cloudflare/goflow/pb;flowprotob";
 option java_package = "com.cloudflare.net.flowagg";
 option java_outer_classname = "FlowMessagePb";
 
@@ -119,5 +119,43 @@ message FlowMessage {
 
   // Custom fields: start after ID 1000:
   // uint32 MyCustomField = 1000;
-
+  //IfCounters
+  uint32 IfIndex = 65;
+  uint32 IfType = 66;
+  uint64 IfSpeed = 67;
+  uint32 IfDirection = 68;
+  uint32 IfStatus = 69;
+  uint64 IfInOctets = 70;
+  uint32 IfInUcastPkts = 71;
+  uint32 IfInMulticastPkts = 72;
+  uint32 IfInBroadcastPkts = 73;
+  uint32 IfInDiscards = 74;
+  uint32 IfInErrors = 75;
+  uint32 IfInUnknownProtos = 76;
+  uint64 IfOutOctets = 77;
+  uint32 IfOutUcastPkts = 78;
+  uint32 IfOutMulticastPkts = 79;
+  uint32 IfOutBroadcastPkts = 80;
+  uint32 IfOutDiscards = 81;
+  uint32 IfOutErrors = 82;
+  uint32 IfPromiscuousMode = 83;
+  // EthernetCounters
+  uint32 Dot3StatsAlignmentErrors = 84;
+  uint32 Dot3StatsFCSErrors = 85;
+  uint32 Dot3StatsSingleCollisionFrames = 86;
+  uint32 Dot3StatsMultipleCollisionFrames = 87;
+  uint32 Dot3StatsSQETestErrors = 88;
+  uint32 Dot3StatsDeferredTransmissions = 89;
+  uint32 Dot3StatsLateCollisions = 90;
+  uint32 Dot3StatsExcessiveCollisions = 91;
+  uint32 Dot3StatsInternalMacTransmitErrors = 92;
+  uint32 Dot3StatsCarrierSenseErrors = 93;
+  uint32 Dot3StatsFrameTooLongs = 94;
+  uint32 Dot3StatsInternalMacReceiveErrors = 95;
+  uint32 Dot3StatsSymbolErrors = 96;
+  bool IsIfCounters=97;
+  bool IsEtherCounters=98;
+  bool IsFlowSample=99;
 }
+
+

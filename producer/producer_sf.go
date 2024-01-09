@@ -21,6 +21,9 @@ func GetSFlowFlowSamples(packet *sflow.Packet) []interface{} {
 			flowSamples = append(flowSamples, sample)
 		case sflow.ExpandedFlowSample:
 			flowSamples = append(flowSamples, sample)
+		case sflow.CounterSample:
+			log.Debug("CountersSample added!")
+			flowSamples = append(flowSamples, sample)
 		}
 	}
 	return flowSamples
@@ -328,7 +331,7 @@ func SearchSFlowSamplesConfig(samples []interface{}, config *SFlowProducerConfig
 
 	for _, flowSample := range samples {
 		var records []sflow.FlowRecord
-
+		var CounterRecords []sflow.CounterRecord
 		flowMessage := &flowmessage.FlowMessage{}
 		flowMessage.Type = flowmessage.FlowMessage_SFLOW_5
 
@@ -343,6 +346,8 @@ func SearchSFlowSamplesConfig(samples []interface{}, config *SFlowProducerConfig
 			flowMessage.SamplingRate = uint64(flowSample.SamplingRate)
 			flowMessage.InIf = flowSample.InputIfValue
 			flowMessage.OutIf = flowSample.OutputIfValue
+		case sflow.CounterSample:
+			CounterRecords = flowSample.Records
 		}
 
 		ipNh := net.IP{}
@@ -350,6 +355,7 @@ func SearchSFlowSamplesConfig(samples []interface{}, config *SFlowProducerConfig
 		ipDst := net.IP{}
 		flowMessage.Packets = 1
 		for _, record := range records {
+			flowMessage.IsFlowSample = true
 			switch recordData := record.Data.(type) {
 			case sflow.SampledHeader:
 				flowMessage.Bytes = uint64(recordData.FrameLength)
@@ -399,6 +405,50 @@ func SearchSFlowSamplesConfig(samples []interface{}, config *SFlowProducerConfig
 				flowMessage.SrcVlan = recordData.SrcVlan
 				flowMessage.DstVlan = recordData.DstVlan
 			}
+		}
+		// handling countersamples
+		for _, record := range CounterRecords {
+			switch recordData := record.Data.(type) {
+			case sflow.IfCounters:
+				log.Debugf("sflow.CounterRecord match")
+				flowMessage.IsIfCounters = true
+				flowMessage.IfIndex = recordData.IfIndex
+				flowMessage.IfType = recordData.IfType
+				flowMessage.IfSpeed = recordData.IfSpeed
+				flowMessage.IfDirection = recordData.IfDirection
+				flowMessage.IfStatus = recordData.IfStatus
+				flowMessage.IfInOctets = recordData.IfInOctets
+				flowMessage.IfInUcastPkts = recordData.IfInUcastPkts
+				flowMessage.IfInMulticastPkts = recordData.IfInMulticastPkts
+				flowMessage.IfInBroadcastPkts = recordData.IfInBroadcastPkts
+				flowMessage.IfInDiscards = recordData.IfInDiscards
+				flowMessage.IfInErrors = recordData.IfInErrors
+				flowMessage.IfInUnknownProtos = recordData.IfInUnknownProtos
+				flowMessage.IfOutOctets = recordData.IfOutOctets
+				flowMessage.IfOutUcastPkts = recordData.IfOutUcastPkts
+				flowMessage.IfOutMulticastPkts = recordData.IfOutMulticastPkts
+				flowMessage.IfOutBroadcastPkts = recordData.IfOutBroadcastPkts
+				flowMessage.IfOutDiscards = recordData.IfOutDiscards
+				flowMessage.IfOutErrors = recordData.IfOutErrors
+				flowMessage.IfPromiscuousMode = recordData.IfPromiscuousMode
+			case sflow.EthernetCounters:
+				log.Debugf("sflow.EthernetCounters match")
+				flowMessage.IsEtherCounters = true
+				flowMessage.Dot3StatsAlignmentErrors = recordData.Dot3StatsAlignmentErrors
+				flowMessage.Dot3StatsFCSErrors = recordData.Dot3StatsFCSErrors
+				flowMessage.Dot3StatsSingleCollisionFrames = recordData.Dot3StatsSingleCollisionFrames
+				flowMessage.Dot3StatsMultipleCollisionFrames = recordData.Dot3StatsMultipleCollisionFrames
+				flowMessage.Dot3StatsSQETestErrors = recordData.Dot3StatsSQETestErrors
+				flowMessage.Dot3StatsDeferredTransmissions = recordData.Dot3StatsDeferredTransmissions
+				flowMessage.Dot3StatsLateCollisions = recordData.Dot3StatsLateCollisions
+				flowMessage.Dot3StatsExcessiveCollisions = recordData.Dot3StatsExcessiveCollisions
+				flowMessage.Dot3StatsInternalMacTransmitErrors = recordData.Dot3StatsInternalMacTransmitErrors
+				flowMessage.Dot3StatsCarrierSenseErrors = recordData.Dot3StatsCarrierSenseErrors
+				flowMessage.Dot3StatsFrameTooLongs = recordData.Dot3StatsFrameTooLongs
+				flowMessage.Dot3StatsInternalMacReceiveErrors = recordData.Dot3StatsInternalMacReceiveErrors
+				flowMessage.Dot3StatsSymbolErrors = recordData.Dot3StatsSymbolErrors
+			}
+
 		}
 		flowMessageSet = append(flowMessageSet, flowMessage)
 	}
